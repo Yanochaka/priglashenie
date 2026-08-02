@@ -259,17 +259,24 @@ export default function Home() {
           "Кажется, пора готовить идеальный вечер ✨",
         ].join("\n");
 
-        await fetch(
+        const telegramResponse = await fetch(
           `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
           {
             method: "POST",
-            mode: "no-cors",
             body: new URLSearchParams({
               chat_id: TELEGRAM_CHAT_ID,
               text: message,
             }),
           },
         );
+
+        const telegramResult = (await telegramResponse.json()) as {
+          ok?: boolean;
+        };
+
+        if (!telegramResponse.ok || !telegramResult.ok) {
+          throw new Error("Telegram не принял сообщение. Попробуй ещё раз.");
+        }
 
         goTo(3);
         return;

@@ -48,7 +48,8 @@ test("supports Telegram delivery on the server and GitHub Pages", async () => {
   assert.match(page, /fetch\("\/api\/send-date"/);
   assert.match(page, /const TELEGRAM_BOT_TOKEN = "\d{8,12}:AA[A-Za-z0-9_-]{30,}"/);
   assert.match(page, /api\.telegram\.org\/bot\$\{TELEGRAM_BOT_TOKEN\}\/sendMessage/);
-  assert.match(page, /mode: "no-cors"/);
+  assert.match(page, /await telegramResponse\.json\(\)/);
+  assert.match(page, /!telegramResponse\.ok \|\| !telegramResult\.ok/);
   assert.match(route, /process\.env\.TELEGRAM_BOT_TOKEN/);
   assert.match(route, /process\.env\.TELEGRAM_CHAT_ID/);
   assert.match(gitignore, /^\.env\*/m);
