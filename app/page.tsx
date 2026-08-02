@@ -219,6 +219,7 @@ export default function Home() {
   const [time, setTime] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState("");
+  const [sentViaShare, setSentViaShare] = useState(false);
 
   const minDate = useMemo(() => {
     const today = new Date();
@@ -239,6 +240,34 @@ export default function Home() {
     setSendError("");
 
     try {
+      if (window.location.hostname.endsWith("github.io")) {
+        const message = [
+          "🌸 Я выбрала дату для нашего свидания!",
+          "",
+          `📅 ${formatDate(date)}`,
+          `🕰 ${time}`,
+          "",
+          "Буду ждать наш вечер ✨",
+        ].join("\n");
+        const shareUrl = new URL("https://t.me/share/url");
+        shareUrl.searchParams.set("url", window.location.href);
+        shareUrl.searchParams.set("text", message);
+
+        const telegramWindow = window.open(
+          shareUrl.toString(),
+          "_blank",
+          "noopener,noreferrer",
+        );
+
+        if (!telegramWindow) {
+          window.location.assign(shareUrl.toString());
+        }
+
+        setSentViaShare(true);
+        goTo(3);
+        return;
+      }
+
       const response = await fetch("/api/send-date", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -417,7 +446,11 @@ export default function Home() {
               </div>
 
               <p className="signature">Очень жду наш вечер <span>♥</span></p>
-              <p className="delivered-note">Твой выбор уже прилетел мне в Telegram</p>
+              <p className="delivered-note">
+                {sentViaShare
+                  ? "Telegram уже открыт — выбери наш чат и отправь готовое сообщение"
+                  : "Твой выбор уже прилетел мне в Telegram"}
+              </p>
 
               <div className="petal-burst" aria-hidden="true">
                 {Array.from({ length: 12 }).map((_, index) => (
