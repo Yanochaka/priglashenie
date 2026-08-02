@@ -110,6 +110,11 @@ const TIME_OPTIONS = [
   { value: "21:30", label: "поздний вечер" },
 ];
 
+// GitHub Pages is static, so these values are intentionally bundled into the
+// browser build at the site owner's explicit request.
+const TELEGRAM_BOT_TOKEN = "8654526010:AAHrsbT8b2oIvmwz95WnJKs0IsyJI7BIFlc";
+const TELEGRAM_CHAT_ID = "8906052538";
+
 function toLocalIso(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -219,7 +224,6 @@ export default function Home() {
   const [time, setTime] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState("");
-  const [sentViaShare, setSentViaShare] = useState(false);
 
   const minDate = useMemo(() => {
     const today = new Date();
@@ -242,28 +246,31 @@ export default function Home() {
     try {
       if (window.location.hostname.endsWith("github.io")) {
         const message = [
-          "🌸 Я выбрала дату для нашего свидания!",
+          "🌸 Яна выбрала дату для свидания!",
           "",
-          `📅 ${formatDate(date)}`,
+          `📅 ${new Intl.DateTimeFormat("ru-RU", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            weekday: "long",
+          }).format(new Date(`${date}T12:00:00`))}`,
           `🕰 ${time}`,
           "",
-          "Буду ждать наш вечер ✨",
+          "Кажется, пора готовить идеальный вечер ✨",
         ].join("\n");
-        const shareUrl = new URL("https://t.me/share/url");
-        shareUrl.searchParams.set("url", window.location.href);
-        shareUrl.searchParams.set("text", message);
 
-        const telegramWindow = window.open(
-          shareUrl.toString(),
-          "_blank",
-          "noopener,noreferrer",
+        await fetch(
+          `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+          {
+            method: "POST",
+            mode: "no-cors",
+            body: new URLSearchParams({
+              chat_id: TELEGRAM_CHAT_ID,
+              text: message,
+            }),
+          },
         );
 
-        if (!telegramWindow) {
-          window.location.assign(shareUrl.toString());
-        }
-
-        setSentViaShare(true);
         goTo(3);
         return;
       }
@@ -446,11 +453,7 @@ export default function Home() {
               </div>
 
               <p className="signature">Очень жду наш вечер <span>♥</span></p>
-              <p className="delivered-note">
-                {sentViaShare
-                  ? "Telegram уже открыт — выбери наш чат и отправь готовое сообщение"
-                  : "Твой выбор уже прилетел мне в Telegram"}
-              </p>
+              <p className="delivered-note">Твой выбор уже прилетел мне в Telegram</p>
 
               <div className="petal-burst" aria-hidden="true">
                 {Array.from({ length: 12 }).map((_, index) => (

@@ -37,7 +37,7 @@ test("server-renders the invitation", async () => {
   assert.doesNotMatch(html, /TELEGRAM_BOT_TOKEN|AA[A-Za-z0-9_-]{30,}/);
 });
 
-test("keeps Telegram credentials on the server", async () => {
+test("supports Telegram delivery on the server and GitHub Pages", async () => {
   const [page, route, gitignore, envExample] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/send-date/route.ts", import.meta.url), "utf8"),
@@ -46,9 +46,12 @@ test("keeps Telegram credentials on the server", async () => {
   ]);
 
   assert.match(page, /fetch\("\/api\/send-date"/);
+  assert.match(page, /const TELEGRAM_BOT_TOKEN = "\d{8,12}:AA[A-Za-z0-9_-]{30,}"/);
+  assert.match(page, /api\.telegram\.org\/bot\$\{TELEGRAM_BOT_TOKEN\}\/sendMessage/);
+  assert.match(page, /mode: "no-cors"/);
   assert.match(route, /process\.env\.TELEGRAM_BOT_TOKEN/);
   assert.match(route, /process\.env\.TELEGRAM_CHAT_ID/);
   assert.match(gitignore, /^\.env\*/m);
   assert.match(envExample, /TELEGRAM_BOT_TOKEN=your_bot_token_here/);
-  assert.doesNotMatch(`${page}\n${route}\n${envExample}`, /\d{8,12}:AA[A-Za-z0-9_-]{30,}/);
+  assert.doesNotMatch(`${page}\n${route}\n${envExample}`, /ghp_[A-Za-z0-9]{20,}/);
 });
